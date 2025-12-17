@@ -179,7 +179,7 @@
   <script src="https://universal-connect.vercel.app/connect-widget.js" async></script>
 
   <div class="video-button" onclick="window.location.href='https://super-videotheque-frontend.vercel.app'">
-    <video src="public/logo-super-videotheque.mp4" muted autoplay loop playsinline></video>
+    <video id="svVideo" src="public/logo-super-videotheque.mp4" muted autoplay loop playsinline></video>
   </div>
 
   <div class="carousel-wrapper">
@@ -212,6 +212,22 @@
 
   <script>
     // Connect widget is now handled by external script
+
+    // Super Vidéothèque: alterner la source à chaque reload
+    (function rotateSuperVideotheque() {
+      const sources = [
+        'public/logo-super-videotheque.mp4',
+        'public/logo-super-videotheque2.mp4'
+      ];
+      const el = document.getElementById('svVideo');
+      if (!el || sources.length === 0) return;
+      let idx = Number(localStorage.getItem('svIdx'));
+      if (!Number.isInteger(idx)) idx = -1;
+      idx = (idx + 1) % sources.length;
+      localStorage.setItem('svIdx', String(idx));
+      el.src = sources[idx];
+      el.load();
+    })();
 
     const items = document.querySelectorAll('.carousel-item');
     const dotsContainer = document.getElementById('dots');
