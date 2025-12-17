@@ -213,20 +213,33 @@
   <script>
     // Connect widget is now handled by external script
 
-    // Super Vidéothèque: alterner la source à chaque reload
-    (function rotateSuperVideotheque() {
-      const sources = [
-        'public/logo-super-videotheque.mp4',
-        'public/logo-super-videotheque2.mp4'
-      ];
+    // Super Vidéothèque: alterner la source à chaque reload (auto-détection MP4)
+    (async function rotateSuperVideotheque() {
+      const base = 'public/logo-super-videotheque';
+      const candidates = ['', '2','3','4','5','6','7','8','9','10'].map(s => `${base}${s}.mp4`);
       const el = document.getElementById('svVideo');
-      if (!el || sources.length === 0) return;
-      let idx = Number(localStorage.getItem('svIdx'));
-      if (!Number.isInteger(idx)) idx = -1;
-      idx = (idx + 1) % sources.length;
-      localStorage.setItem('svIdx', String(idx));
-      el.src = sources[idx];
-      el.load();
+      if (!el) return;
+      try {
+        const checks = await Promise.all(
+          candidates.map(url => fetch(url, { method: 'HEAD' })
+            .then(r => r.ok ? url : null)
+            .catch(() => null))
+        );
+        const sources = checks.filter(Boolean);
+        const list = sources.length ? sources : [candidates[0]];
+        let idx = Number(localStorage.getItem('svIdx'));
+        if (!Number.isInteger(idx)) idx = -1;
+        idx = (idx + 1) % list.length;
+        localStorage.setItem('svIdx', String(idx));
+        el.src = list[idx];
+        el.load();
+        el.play && el.play();
+      } catch (_e) {
+        // Fallback to base
+        el.src = candidates[0];
+        el.load();
+        el.play && el.play();
+      }
     })();
 
     const items = document.querySelectorAll('.carousel-item');
