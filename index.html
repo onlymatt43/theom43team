@@ -216,15 +216,20 @@
     // Super Vidéothèque: alterner la source à chaque reload (auto-détection MP4)
     (async function rotateSuperVideotheque() {
       const base = 'public/logo-super-videotheque';
+      const altBase = 'public/logo-super-videotheque-';
       const candidates = ['', '2','3','4','5','6','7','8','9','10'].map(s => `${base}${s}.mp4`);
+      const altCandidates = ['2','3','4','5','6','7','8','9','10'].map(s => `${altBase}${s}.mp4`);
       const el = document.getElementById('svVideo');
       if (!el) return;
       try {
-        const checks = await Promise.all(
-          candidates.map(url => fetch(url, { method: 'HEAD' })
+        const checks = await Promise.all([
+          ...candidates.map(url => fetch(url, { method: 'HEAD' })
+            .then(r => r.ok ? url : null)
+            .catch(() => null)),
+          ...altCandidates.map(url => fetch(url, { method: 'HEAD' })
             .then(r => r.ok ? url : null)
             .catch(() => null))
-        );
+        ]);
         const sources = checks.filter(Boolean);
         const list = sources.length ? sources : [candidates[0]];
         let idx = Number(localStorage.getItem('svIdx'));
